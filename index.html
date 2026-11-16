@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>資安論文 LLM Wiki</title>
+<meta name="description" content="參考 Karpathy LLM Wiki 模式、由 Claude Code 維護的資安論文知識庫與簡報。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --ink: #141922; --muted: #5a6473; --line: #e1e5eb;
+  --accent: #2647d4; --c1: #0d857a; --c2: #b8720a; --c3: #6e3fc4;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0e13; --surface: #151a22; --ink: #e7ebf1; --muted: #98a2b1; --line: #29303b;
+    --accent: #7f98ff; --c1: #3cc3b2; --c2: #efb04c; --c3: #a88bff;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0e13; --surface: #151a22; --ink: #e7ebf1; --muted: #98a2b1; --line: #29303b;
+  --accent: #7f98ff; --c1: #3cc3b2; --c2: #efb04c; --c3: #a88bff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  line-height: 1.7; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 64px 16px 48px; }
+.kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--accent); }
+h1 { font-size: clamp(32px, 6vw, 52px); font-weight: 900; line-height: 1.2; margin: 10px 0 16px; }
+.lead { font-size: 18px; color: var(--muted); max-width: 720px; }
+.stats { display: flex; flex-wrap: wrap; gap: 28px; margin: 28px 0 40px; }
+.stats b { display: block; font-size: 30px; font-weight: 900; line-height: 1.2; }
+.stats span { font-size: 14px; color: var(--muted); }
+h2 { font-size: 20px; font-weight: 700; margin: 0 0 14px; }
+.decks { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 40px; }
+.deck {
+  display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 24px; color: var(--ink); transition: border-color .2s, transform .2s;
+}
+.deck:hover { border-color: var(--accent); transform: translateY(-2px); text-decoration: none; }
+.deck .tag { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .08em; }
+.deck h3 { font-size: 22px; font-weight: 900; margin: 6px 0 8px; }
+.deck p { font-size: 15px; color: var(--muted); }
+.deck .go { margin-top: 14px; font-size: 14px; font-weight: 700; color: var(--accent); }
+.groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 40px; }
+.group { background: var(--surface); border-radius: 12px; padding: 16px 18px; border-top: 4px solid var(--gc); }
+.group.k1 { --gc: var(--c1); } .group.k2 { --gc: var(--c2); } .group.k3 { --gc: var(--c3); }
+.group h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.group p { font-size: 14px; color: var(--muted); }
+ul.links { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 24px; }
+ul.links li { font-size: 15px; }
+ul.links small { color: var(--muted); }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="kicker">SEC-PAPER-WIKI</div>
+  <h1>資安論文 LLM Wiki</h1>
+  <p class="lead">參考 Karpathy 的 LLM Wiki 模式：原始論文不可變，由 Claude Code 持續把知識「編譯」成互相連結的 Markdown 頁面。內容以繁體中文撰寫，每個主張都附原文頁碼。</p>
+
+  <div class="stats">
+    <div><b>5</b><span>篇論文</span></div>
+    <div><b>13</b><span>個概念</span></div>
+    <div><b>6</b><span>個目標系統</span></div>
+    <div><b>68</b><span>條頁面連結</span></div>
+  </div>
+
+  <h2>簡報</h2>
+  <div class="decks">
+    <a class="deck" href="wiki/queries/2026-11-16-security-graph-slides.html">
+      <div class="tag">知識圖譜 · 11 張</div>
+      <h3>一張圖看懂 2026 資安問題</h3>
+      <p>沿著 wiki 的知識圖譜走一圈：樞紐節點、三個子圖、結論相反的邊、旁通道橋接，以及代表開放問題的「缺少的邊」。</p>
+      <div class="go">開啟簡報 →</div>
+    </a>
+    <a class="deck" href="wiki/queries/2026-11-16-security-issues-slides.html">
+      <div class="tag">重點整理 · 13 張</div>
+      <h3>2026 資安問題速覽</h3>
+      <p>以數據為主的版本：五篇論文的關鍵數字、跨論文洞見、趨勢、開放問題與給實務者的建議。</p>
+      <div class="go">開啟簡報 →</div>
+    </a>
+  </div>
+
+  <h2>三個問題群</h2>
+  <div class="groups">
+    <div class="group k1"><h3>① 非位置訊號的隱私推論</h3><p>刪除 GPS 的車輛資料、免權限的手機磁力計，都能推論行蹤。</p></div>
+    <div class="group k2"><h3>② 數位簽章的安全基礎</h3><p>RFC 6979 依賴未證明的假設；資訊理論簽章則捨棄計算假設。</p></div>
+    <div class="group k3"><h3>③ 微架構旁通道與編譯器防禦</h3><p>Spectre 下的常數時間密碼學，與可證明的選擇性 SLH。</p></div>
+  </div>
+
+  <h2>瀏覽 wiki</h2>
+  <ul class="links">
+    <li><a href="https://github.com/ewiwi22255/LLM-wiki-practice-repo/blob/main/wiki/index.md">wiki 目錄</a> <small>全部頁面</small></li>
+    <li><a href="https://github.com/ewiwi22255/LLM-wiki-practice-repo/blob/main/wiki/overview.md">研究綜覽</a> <small>領域地圖與趨勢</small></li>
+    <li><a href="https://github.com/ewiwi22255/LLM-wiki-practice-repo/blob/main/wiki/log.md">操作日誌</a> <small>ingest／query 紀錄</small></li>
+    <li><a href="https://github.com/ewiwi22255/LLM-wiki-practice-repo/blob/main/AGENTS.md">AGENTS.md</a> <small>維護規則與模板</small></li>
+  </ul>
+
+  <footer>
+    原始碼：<a href="https://github.com/ewiwi22255/LLM-wiki-practice-repo">github.com/ewiwi22255/LLM-wiki-practice-repo</a> ·
+    設計參考 <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f">Karpathy, LLM Wiki</a> ·
+    原始論文 PDF 不隨 repo 發布
+  </footer>
+</main>
+</body>
+</html>

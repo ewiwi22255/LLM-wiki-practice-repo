@@ -702,5 +702,21 @@ svg.graph { width: 100%; height: 100%; display: block; overflow: hidden; }
   show((parseInt(location.hash.slice(1), 10) || 1) - 1);
 })();
 </script>
+<script>
+/* 在 GitHub Pages 上，把 .md 連結改連到 GitHub 的頁面（Pages 不會渲染 Markdown） */
+(function () {
+  if (!/\.github\.io$/.test(location.hostname)) return;
+  const owner = location.hostname.split('.')[0];
+  const repo = location.pathname.split('/')[1];
+  const base = 'https://github.com/' + owner + '/' + repo + '/blob/main/';
+  document.querySelectorAll('a[href]').forEach(a => {
+    const h = a.getAttribute('href');
+    if (!/\.md$/.test(h) || /^https?:/.test(h)) return;
+    const path = new URL(h, location.href).pathname.split('/').slice(2).join('/');
+    a.setAttribute('href', base + path);
+    a.setAttribute('target', '_blank');
+  });
+})();
+</script>
 </body>
 </html>
