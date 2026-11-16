@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>資安知識圖譜簡報</title>
+<meta name="description" content="以 sec-paper-wiki 的知識圖譜為主軸，逐步走訪 2026 年資安問題的簡報。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #e9ecf1; --slide: #ffffff; --ink: #141922; --muted: #5a6473; --faint: #b6bdc8;
+  --line: #e1e5eb; --card: #f4f6f9;
+  --edge: #b9c1cc; --edge-on: #6f7b8c; --edge-off: #e6e9ee;
+  --c0: #2647d4; --t0: #e4e9fc;
+  --c1: #0d857a; --t1: #dcf2ee;
+  --c2: #b8720a; --t2: #fbefd8;
+  --c3: #6e3fc4; --t3: #ece4fa;
+  --on-k: #ffffff; --warn: #c2410c;
+  --shadow: 0 10px 40px rgba(20, 25, 34, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #090c11; --slide: #131820; --ink: #e7ebf1; --muted: #98a2b1; --faint: #46505e;
+    --line: #29303b; --card: #1b212b;
+    --edge: #3f4857; --edge-on: #8f9bad; --edge-off: #222933;
+    --c0: #7f98ff; --t0: #1c2446;
+    --c1: #3cc3b2; --t1: #10332f;
+    --c2: #efb04c; --t2: #372811;
+    --c3: #a88bff; --t3: #271f40;
+    --on-k: #0b0e13; --warn: #fb923c;
+    --shadow: 0 10px 40px rgba(0, 0, 0, .5);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #090c11; --slide: #131820; --ink: #e7ebf1; --muted: #98a2b1; --faint: #46505e;
+  --line: #29303b; --card: #1b212b;
+  --edge: #3f4857; --edge-on: #8f9bad; --edge-off: #222933;
+  --c0: #7f98ff; --t0: #1c2446;
+  --c1: #3cc3b2; --t1: #10332f;
+  --c2: #efb04c; --t2: #372811;
+  --c3: #a88bff; --t3: #271f40;
+  --on-k: #0b0e13; --warn: #fb923c;
+  --shadow: 0 10px 40px rgba(0, 0, 0, .5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  overflow: hidden; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--c0); text-decoration: none; }
+
+/* ---------- 舞台 ---------- */
+.stage { position: fixed; inset: 0 0 56px 0; display: grid; place-items: center; }
+.slide {
+  position: absolute; width: 1280px; height: 720px;
+  background: var(--slide); border-radius: 14px; box-shadow: var(--shadow);
+  transform: scale(var(--s, 1)); opacity: 0; visibility: hidden;
+  transition: opacity .35s ease; overflow: hidden;
+}
+.slide.active { opacity: 1; visibility: visible; }
+.gslot { position: absolute; left: 0; top: 0; width: 800px; height: 720px; padding: 18px 8px 18px 18px; overflow: hidden; }
+.panel {
+  position: absolute; left: 800px; right: 0; top: 0; bottom: 0; background: var(--slide);
+  padding: 52px 52px 40px 28px; display: flex; flex-direction: column;
+  border-left: 1px solid var(--line);
+}
+.pageno { position: absolute; right: 28px; top: 22px; font: 500 13px "JetBrains Mono", monospace; color: var(--muted); }
+
+/* ---------- 面板文字 ---------- */
+.kicker { font-size: 14px; font-weight: 700; letter-spacing: .12em; color: var(--kc, var(--c0)); margin-bottom: 12px; }
+.k1 { --kc: var(--c1); --kt: var(--t1); }
+.k2 { --kc: var(--c2); --kt: var(--t2); }
+.k3 { --kc: var(--c3); --kt: var(--t3); }
+.k0 { --kc: var(--c0); --kt: var(--t0); }
+.panel h1 { font-size: 44px; font-weight: 900; line-height: 1.2; margin-bottom: 18px; }
+.panel h2 { font-size: 29px; font-weight: 900; line-height: 1.3; margin-bottom: 16px; }
+.panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.panel p, .panel li { font-size: 16px; line-height: 1.65; }
+.muted { color: var(--muted); }
+.path {
+  font-size: 14px; line-height: 1.6; color: var(--muted);
+  background: var(--card); border-radius: 8px; padding: 8px 12px; margin-bottom: 14px;
+}
+.path b { color: var(--kc, var(--ink)); font-weight: 700; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin: 6px 0 4px; }
+.stat .num { font-size: 32px; font-weight: 900; line-height: 1.1; color: var(--kc, var(--c0)); white-space: nowrap; letter-spacing: -.01em; }
+.stat .num small { font-size: 17px; font-weight: 700; }
+.stat .lbl { font-size: 13.5px; line-height: 1.45; color: var(--muted); margin-top: 4px; }
+.block-h { font-size: 14px; font-weight: 700; color: var(--muted); margin: 10px 0 6px; letter-spacing: .04em; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.45; }
+th { font-size: 12.5px; color: var(--muted); font-weight: 700; letter-spacing: .06em; }
+td:first-child { white-space: nowrap; }
+td.n { text-align: right; font-family: "JetBrains Mono", monospace; font-weight: 500; }
+.callout {
+  margin-top: 14px; padding: 12px 14px; border-radius: 0;
+  background: var(--kt, var(--t0)); border-left: 4px solid var(--kc, var(--c0));
+  font-size: 15px; line-height: 1.6;
+}
+.tag {
+  display: inline-block; font-size: 11.5px; font-weight: 700; padding: 1px 8px; margin-left: 4px;
+  border-radius: 999px; border: 1.5px solid var(--warn); color: var(--warn); vertical-align: 1px;
+}
+.cards { display: grid; gap: 10px; }
+.cards.two { grid-template-columns: 1fr 1fr; }
+.card { background: var(--card); border-radius: 10px; padding: 12px 14px; border-top: 3px solid var(--cc, var(--kc, var(--c0))); }
+.card p { font-size: 14px; line-height: 1.55; }
+.card.k1 { --cc: var(--c1); } .card.k2 { --cc: var(--c2); } .card.k3 { --cc: var(--c3); }
+ul.items { list-style: none; }
+ul.items li { display: grid; grid-template-columns: 26px 1fr; gap: 6px; margin-bottom: 9px; font-size: 14.5px; line-height: 1.5; }
+.dot { width: 22px; height: 22px; border-radius: 6px; font-size: 12px; font-weight: 700; display: grid; place-items: center; color: var(--on-k); background: var(--cc); margin-top: 1px; }
+.dot.k1 { --cc: var(--c1); } .dot.k2 { --cc: var(--c2); } .dot.k3 { --cc: var(--c3); } .dot.k0 { --cc: var(--c0); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+.src { margin-top: auto; padding-top: 10px; font-size: 12px; line-height: 1.5; color: var(--muted); border-top: 1px solid var(--line); }
+.src a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+
+/* 圖例 */
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 14px; margin-top: 14px; }
+.lg { display: flex; align-items: center; gap: 8px; }
+.sw { width: 26px; height: 16px; flex: none; }
+.sw.paper { background: var(--ink); border-radius: 4px; }
+.sw.concept { border: 2px solid var(--ink); border-radius: 999px; }
+.sw.system { background: var(--ink); clip-path: polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%); }
+.sw.miss { border: 2px dashed var(--muted); border-radius: 4px; }
+.sw.col { border-radius: 4px; background: var(--kc); }
+
+/* ---------- 圖譜 ---------- */
+svg.graph { width: 100%; height: 100%; display: block; overflow: hidden; }
+.graph text { font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-size: 17px; font-weight: 700; text-anchor: middle; dominant-baseline: central; transition: fill .5s; }
+.graph .shape { stroke-width: 2; transition: fill .5s, stroke .5s; }
+.graph .n { cursor: pointer; }
+.graph .n:hover .shape { stroke-width: 3.5; }
+.graph .paper .shape { fill: var(--kc); stroke: var(--kc); }
+.graph .paper text { fill: var(--on-k); }
+.graph .concept .shape { fill: var(--kt); stroke: var(--kc); }
+.graph .concept text { fill: var(--ink); }
+.graph .system .shape { fill: var(--slide); stroke: var(--kc); }
+.graph .system text { fill: var(--ink); }
+.graph .dim .shape { fill: var(--slide); stroke: var(--line); }
+.graph .dim text { fill: var(--faint); }
+.graph .miss { opacity: 0; transition: opacity .5s; pointer-events: none; }
+.graph .miss .shape { fill: var(--slide); stroke: var(--muted); stroke-dasharray: 6 4; }
+.graph .miss text { fill: var(--muted); font-weight: 500; }
+.graph .miss.show { opacity: 1; }
+.graph .e { fill: none; stroke: var(--edge); stroke-width: 1.6; transition: stroke .5s, stroke-width .5s, opacity .5s; }
+.graph .e.r { stroke-dasharray: 5 5; }
+.graph .e.on { stroke: var(--edge-on); stroke-width: 2; }
+.graph .e.off { stroke: var(--edge-off); }
+.graph .e.hl { stroke: var(--kc); stroke-width: 3.6; }
+.graph .e.x { stroke: var(--warn); stroke-width: 2.6; stroke-dasharray: 9 6; opacity: 0; }
+.graph .e.x.show { opacity: 1; }
+.graph .e.x.hl { stroke-width: 4.2; }
+.graph .e.q { stroke: var(--muted); stroke-width: 1.8; stroke-dasharray: 3 5; opacity: 0; }
+.graph .e.q.show { opacity: 1; }
+.graph .ann { opacity: 0; transition: opacity .5s; pointer-events: none; }
+.graph .ann.show { opacity: 1; }
+.graph .badge circle { fill: var(--warn); }
+.graph .badge text { fill: #fff; font-size: 14px; font-family: "JetBrains Mono", monospace; }
+.graph .pill rect { fill: var(--slide); stroke: var(--pc, var(--warn)); stroke-width: 2; }
+.graph .pill text { fill: var(--pc, var(--warn)); font-size: 15px; }
+
+/* ---------- 控制列 ---------- */
+.bar-ui { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; display: flex; align-items: center; justify-content: center; gap: 14px; color: var(--muted); font-size: 14px; }
+.bar-ui button { font: inherit; background: var(--slide); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; height: 34px; min-width: 40px; padding: 0 12px; cursor: pointer; }
+.bar-ui button:hover { border-color: var(--c0); }
+.counter { font-family: "JetBrains Mono", monospace; min-width: 64px; text-align: center; }
+.progress { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--c0); transition: width .3s ease; }
+.hint { position: fixed; right: 16px; bottom: 18px; font-size: 12px; color: var(--muted); }
+@media (max-width: 1000px) { .hint { display: none; } }
+
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  body { overflow: visible; background: #fff; }
+  .stage { position: static; display: block; }
+  .slide { position: relative; transform: none !important; opacity: 1; visibility: visible; border-radius: 0; box-shadow: none; break-after: page; page-break-after: always; }
+  .bar-ui, .progress, .hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="a-off" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L9 5L1 9z" style="fill: var(--edge)"/></marker>
+    <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L9 5L1 9z" style="fill: var(--edge-off)"/></marker>
+    <marker id="a-on" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9z" style="fill: var(--edge-on)"/></marker>
+  </defs>
+</svg>
+
+<main class="stage">
+
+<!-- 1 全圖總覽 -->
+<section class="slide" data-view="all">
+  <div class="gslot"></div>
+  <div class="panel">
+    <div class="kicker">SEC-PAPER-WIKI · 知識圖譜簡報</div>
+    <h1>2026 資安問題<br>一張圖看懂</h1>
+    <p class="muted">把 wiki 當成知識圖譜：論文、概念、系統是節點，歸屬與上下位關係是邊。三個問題群在圖上自然分開，再由「旁通道」接在一起。</p>
+    <div class="stats" style="margin-top:18px">
+      <div class="stat"><div class="num">26</div><div class="lbl">個節點（wiki 頁面）</div></div>
+      <div class="stat"><div class="num">68</div><div class="lbl">條連結（頁面間超連結）</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">篇論文</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">個問題群</div></div>
+    </div>
+    <div class="legend">
+      <div class="lg"><span class="sw paper"></span>論文</div>
+      <div class="lg k1"><span class="sw col"></span>① 隱私推論</div>
+      <div class="lg"><span class="sw concept"></span>概念</div>
+      <div class="lg k2"><span class="sw col"></span>② 數位簽章</div>
+      <div class="lg"><span class="sw system"></span>系統</div>
+      <div class="lg k3"><span class="sw col"></span>③ 微架構</div>
+      <div class="lg"><span class="sw miss"></span>缺少的節點</div>
+      <div class="lg k0"><span class="sw col"></span>跨群樞紐</div>
+    </div>
+    <div class="src">點擊節點可開啟對應的 wiki 頁面。節點數含 2 個會議頁，圖中省略；圖上只畫語意關係，不畫全部超連結 · 來源：<a href="../index.md">index.md</a></div>
+  </div>
+  <div class="pageno">01</div>
+</section>
+
+<!-- 2 樞紐 -->
+<section class="slide" data-view="hubs">
+  <div class="gslot"></div>
+  <div class="panel k0">
+    <div class="kicker">樞紐節點</div>
+    <h2>誰是這張圖的中心？</h2>
+    <table>
+      <tr><th>節點</th><th>類型</th><th style="text-align:right">連結數</th></tr>
+      <tr><td>免權限感測器洩漏</td><td>概念</td><td class="n">9</td></tr>
+      <tr><td>列車磁場隱私洩漏</td><td>論文</td><td class="n">9</td></tr>
+      <tr><td>旁通道攻擊</td><td>概念</td><td class="n">8</td></tr>
+      <tr><td>位置隱私</td><td>概念</td><td class="n">7</td></tr>
+      <tr><td>RFC 6979 · VellSSLH</td><td>論文</td><td class="n">7</td></tr>
+      <tr><td>數位簽章</td><td>概念</td><td class="n">6</td></tr>
+    </table>
+    <p style="margin-top:12px">被最多篇論文共享的概念是<b>旁通道攻擊</b>（3 篇），也是唯一橫跨三群的節點。</p>
+    <div class="callout">連結最多的，是把「被認為無害的感測器」變成攻擊面的那篇論文。舊假設的失效，正是這批論文的共同主題。<span class="tag">推論</span></div>
+    <div class="src">連結數依 wiki 頁面間的超連結計算，含會議頁 · <a href="../overview.md">overview.md</a></div>
+  </div>
+  <div class="pageno">02</div>
+</section>
+
+<!-- 3 ① 子圖 -->
+<section class="slide" data-view="c1">
+  <div class="gslot"></div>
+  <div class="panel k1">
+    <div class="kicker">① 子圖放大 · 隱私推論</div>
+    <h2>刪除位置，不等於沒有位置</h2>
+    <div class="path"><b>CANTraj</b> → 路徑推論 → <b>位置隱私</b> ← 免權限感測器 ← <b>列車磁場</b></div>
+    <div class="block-h">CANTraj · 車輛 CAN 訊號</div>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="num">921→43<small>m</small></div><div class="lbl">加入道路圖後的 5 分鐘中位誤差</div></div>
+      <div class="stat"><div class="num">56→87<small>%</small></div><div class="lbl">加入方向盤後的路徑還原率</div></div>
+      <div class="stat"><div class="num">≥82.6<small>%</small></div><div class="lbl">最嚴苛劣化後仍能還原</div></div>
+    </div>
+    <div class="block-h" style="margin-top:14px">列車磁場 · 手機磁力計（CCS '26）</div>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="num">0.93</div><div class="lbl">偵測「正在搭電車」的 MCC</div></div>
+      <div class="stat"><div class="num">0.79</div><div class="lbl">推論「同車」的 MCC</div></div>
+      <div class="stat"><div class="num">0<small> 權限</small></div><div class="lbl">Android、iOS 都不需授權</div></div>
+    </div>
+    <div class="src">來源：<a href="../papers/2026-wang-cantraj.md">CANTraj</a> p.1、p.6、p.11 · <a href="../papers/2026-czybik-train-magnetometer-privacy.md">列車磁場</a> p.3、p.7、p.11</div>
+  </div>
+  <div class="pageno">03</div>
+</section>
+
+<!-- 4 對立的邊 -->
+<section class="slide" data-view="x">
+  <div class="gslot"></div>
+  <div class="panel k1">
+    <div class="kicker">① 對立的邊</div>
+    <h2>一條「結論相反」的邊</h2>
+    <p>兩篇論文都攻擊位置隱私，卻對「降低訊號品質能否防禦」給出相反答案。</p>
+    <table style="margin-top:10px">
+      <tr><th></th><th>CANTraj</th><th>列車磁場</th></tr>
+      <tr><td><b>利用訊號</b></td><td>低頻運動學：速度、方向盤</td><td>單一頻率 16.7 Hz</td></tr>
+      <tr><td><b>外部先驗</b></td><td>道路圖提供強約束</td><td>無</td></tr>
+      <tr><td><b>劣化手段</b></td><td>量化、降頻、加雜訊</td><td>取樣率限制在 35 Hz 以下</td></tr>
+      <tr><td><b>效果</b></td><td>幾乎無效（≥ 82.6%）</td><td>攻擊基礎消失（提議）</td></tr>
+    </table>
+    <div class="callout">劣化防禦是否有效，取決於攻擊用的<b>頻帶</b>，以及有沒有<b>外部先驗</b>可以補回資訊。<span class="tag">推論</span></div>
+    <div class="src">來源：<a href="../concepts/location-privacy.md">location-privacy</a> · CANTraj p.11–12 · 列車磁場 p.12</div>
+  </div>
+  <div class="pageno">04</div>
+</section>
+
+<!-- 5 ② 子圖 -->
+<section class="slide" data-view="c2">
+  <div class="gslot"></div>
+  <div class="panel k2">
+    <div class="kicker">② 子圖放大 · 數位簽章</div>
+    <h2>簽章的地基，比想像中鬆</h2>
+    <div class="path"><b>RFC 6979</b> → ECDSA nonce → <b>數位簽章</b> ← 門檻簽章 ← <b>IT 門檻簽章</b></div>
+    <p>RFC 6979 的確定性 nonce，真正需要的是一個未被證明的假設 <b>A*</b>。作者構造出一個標準意義下的 PRF：用它產生 nonce，一個簽章就能還原私鑰。</p>
+    <div class="stats" style="margin-top:12px">
+      <div class="stat"><div class="num">28/31</div><div class="lbl">個 secp256k1 實作預設依賴 A*</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">個採用可免除 A* 的獨立 nonce 金鑰</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">個測試 h ≥ n 分支</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">個移植版有相容性 bug（NBitcoin、dcrd、btcec v2）</div></div>
+    </div>
+    <div class="src">來源：<a href="../papers/2026-prosianoi-rfc6979-deterministic-ecdsa.md">RFC 6979 確定性 ECDSA</a> p.4、p.15–17 · <a href="../systems/secp256k1-implementations.md">secp256k1</a></div>
+  </div>
+  <div class="pageno">05</div>
+</section>
+
+<!-- 6 光譜 -->
+<section class="slide" data-view="spec">
+  <div class="gslot"></div>
+  <div class="panel k2">
+    <div class="kicker">② 光譜的兩端</div>
+    <h2>公開驗證，還是無條件安全？</h2>
+    <p>兩篇簽章論文在「數位簽章」節點匯合，卻往兩個方向走。</p>
+    <div class="cards" style="margin-top:12px">
+      <div class="card" style="--cc:var(--c0)"><h3>計算安全：ECDSA、ML-DSA</h3><p>任何人都能用公鑰驗證，金鑰短。但依賴困難度假設，而 A* 這樣的假設甚至沒被證明。</p></div>
+      <div class="card k2"><h3>資訊理論安全：IT 門檻簽章</h3><p>偽造機率 ≤ 1/p<sup>Δk</sup>，量子攻擊也無效。代價是只有預先登記的驗證者能驗證，金鑰只能用一次且很長。Raspberry Pi 4 最壞情況：簽章約 232 ms、驗證約 2 s。</p></div>
+    </div>
+    <div class="callout">比較適合成員固定的封閉系統，例如無人機群、工業控制。<span class="tag">推論</span></div>
+    <div class="src">來源：<a href="../concepts/digital-signatures.md">digital-signatures</a> · <a href="../papers/2026-wright-it-threshold-dv-signatures.md">IT 門檻簽章</a> p.1、p.9、p.13</div>
+  </div>
+  <div class="pageno">06</div>
+</section>
+
+<!-- 7 ③ 子圖 -->
+<section class="slide" data-view="c3">
+  <div class="gslot"></div>
+  <div class="panel k3">
+    <div class="kicker">③ 子圖放大 · 微架構</div>
+    <h2>常數時間，在推測執行下失效</h2>
+    <div class="path"><b>VellSSLH</b> → SLH、推測常數時間 → <b>Spectre</b> → 旁通道</div>
+    <p>分支預測錯誤時，處理器會推測執行越界讀取，讀到秘密並在快取留下痕跡（Spectre v1）。VellSSLH 把每個值分成三種型別，只對 T 加保護：</p>
+    <table style="margin:10px 0">
+      <tr><th>型別</th><th>正常執行</th><th>推測執行</th><th>處理</th></tr>
+      <tr><td><b>P</b></td><td>公開</td><td>公開</td><td>不需處理</td></tr>
+      <tr><td><b>T</b></td><td>公開</td><td>可能秘密</td><td><b>protect 遮罩</b></td></tr>
+      <tr><td><b>S</b></td><td>秘密</td><td>秘密</td><td>不能被觀察</td></tr>
+    </table>
+    <p class="muted" style="font-size:14.5px">檢查器的健全性以 Rocq 證明（33.7 萬行），但保證只到 LLVM IR。</p>
+    <div class="src">來源：<a href="../papers/2026-priya-vellsslh.md">VellSSLH</a> p.1–2、p.7、p.20</div>
+  </div>
+  <div class="pageno">07</div>
+</section>
+
+<!-- 8 取捨 -->
+<section class="slide" data-view="trade">
+  <div class="gslot"></div>
+  <div class="panel k3">
+    <div class="kicker">③ 防禦的取捨</div>
+    <h2>少加保護，不一定比較快</h2>
+    <div class="stats" style="margin-top:4px">
+      <div class="stat"><div class="num">−4.03<small>%</small></div><div class="lbl">24 個密碼學 API 的幾何平均執行時間低於 LLVM SLH（13 快、8 慢、3 無定論）</div></div>
+      <div class="stat"><div class="num">−22.7<small>%</small></div><div class="lbl">X25519 比 LLVM SLH 快，相對未保護程式只多 1.86%</div></div>
+      <div class="stat"><div class="num">149→3</div><div class="lbl">選擇性放置後的保護點數（Salsa20 核心）</div></div>
+      <div class="stat"><div class="num">+7~10<small>%</small></div><div class="lbl">約 80 ns 的短函數反而比 LLVM SLH 慢：入口 LFENCE 是固定成本</div></div>
+    </div>
+    <div class="callout">圖上的 <b>LLVM</b> 節點代表另一個風險：IR 之後的暫存器溢出與最佳化，可能讓已證明的保證失效。</div>
+    <div class="src">來源：<a href="../papers/2026-priya-vellsslh.md">VellSSLH</a> p.15–17、p.20 · <a href="../systems/llvm.md">llvm</a></div>
+  </div>
+  <div class="pageno">08</div>
+</section>
+
+<!-- 9 橋接 -->
+<section class="slide" data-view="bridge">
+  <div class="gslot"></div>
+  <div class="panel k0">
+    <div class="kicker">跨群橋接</div>
+    <h2>旁通道：三群共用的樞紐</h2>
+    <p class="muted" style="margin-bottom:12px">把圖拉回全景，所有指向「旁通道攻擊」的邊都亮起來：</p>
+    <ul class="items">
+      <li><span class="dot k1">①</span><span><b>免權限感測器 → 旁通道</b><br>環境物理訊號：架空線牽引電流產生的磁場</span></li>
+      <li><span class="dot k2">②</span><span><b>ECDSA nonce ↔ 旁通道</b><br>功耗、時間外洩 nonce 位元；256 位元曲線上一個位元，模型估計需 2<sup>40</sup>–2<sup>47</sup> 個簽章</span></li>
+      <li><span class="dot k3">③</span><span><b>Spectre、推測常數時間 → 旁通道</b><br>微架構狀態：推測執行留下的快取痕跡</span></li>
+    </ul>
+    <div class="callout">系統、密碼學、行動隱私三個社群研究的是同一類問題，用語與評估方式卻差很多。<span class="tag">推論</span></div>
+    <div class="src">把列車磁場歸為旁通道是 wiki 的分類 · <a href="../concepts/side-channel-attacks.md">side-channel-attacks</a> · RFC 6979 p.17</div>
+  </div>
+  <div class="pageno">09</div>
+</section>
+
+<!-- 10 缺少的邊 -->
+<section class="slide" data-view="missing">
+  <div class="gslot"></div>
+  <div class="panel k0">
+    <div class="kicker">缺少的邊</div>
+    <h2>圖上的虛線，就是還沒有答案的地方</h2>
+    <ul class="items">
+      <li><span class="dot k1">①</span><span><b>起點未知追蹤</b>：起點未知時的車輛追蹤（CANTraj p.12）</span></li>
+      <li><span class="dot k1">①</span><span><b>權限 vs 功能</b>：感測器權限與計步、手勢的取捨（列車磁場 p.12）</span></li>
+      <li><span class="dot k2">②</span><span><b>A* 尚未證明</b>：一位元 nonce 外洩的實際成本也未量測（RFC 6979 p.18）</span></li>
+      <li><span class="dot k2">②</span><span><b>多驗證者實用性</b>：驗證者多或事先未知時的成本（IT 門檻簽章 p.13）</span></li>
+      <li><span class="dot k3">③</span><span><b>IR → 機器碼</b>：保證能否延伸到後端與硬體（VellSSLH p.20）</span></li>
+      <li><span class="dot k3">③</span><span><b>入口屏障成本</b>：短函數的固定 LFENCE 成本（VellSSLH p.17）</span></li>
+    </ul>
+    <div class="block-h">五個趨勢 <span class="tag">推論 · 樣本 5 篇</span></div>
+    <div class="chips"><span class="chip">統一基準</span><span class="chip">形式化方法進入工具鏈</span><span class="chip">重新檢視無害資料</span><span class="chip">超越計算假設</span><span class="chip">生成式 AI 進入研究流程</span></div>
+    <div class="src">來源：<a href="../overview.md">overview.md · 開放問題總表與近期趨勢</a></div>
+  </div>
+  <div class="pageno">10</div>
+</section>
+
+<!-- 11 系統 → 角色 -->
+<section class="slide" data-view="systems">
+  <div class="gslot"></div>
+  <div class="panel k0">
+    <div class="kicker">系統節點 → 角色</div>
+    <h2>從被攻擊的系統，推出誰該行動</h2>
+    <div class="cards two">
+      <div class="card k1"><h3>資料發布者 · 車載 CAN</h3><p>刪 GPS、量化都不夠；發布前用適應性攻擊者實測。</p></div>
+      <div class="card k1"><h3>行動作業系統 · Android、iOS</h3><p>磁力計要權限；免權限的取樣率限制在 35 Hz 以下。</p></div>
+      <div class="card k2"><h3>密碼學函式庫 · secp256k1</h3><p>考慮 hedged 或獨立 nonce 金鑰；補上 h ≥ n 測試。</p></div>
+      <div class="card k3"><h3>編譯器 · LLVM</h3><p>選擇性 SLH 可行；留意入口屏障與後端假設。</p></div>
+    </div>
+    <div class="block-h" style="margin-top:14px">資料來源</div>
+    <p style="font-size:13px;line-height:1.7" class="muted">
+      <a href="../papers/2026-wang-cantraj.md">CANTraj</a>（arXiv 2611.18442）·
+      <a href="../papers/2026-czybik-train-magnetometer-privacy.md">列車磁場</a>（CCS 2026）·
+      <a href="../papers/2026-prosianoi-rfc6979-deterministic-ecdsa.md">RFC 6979</a>（arXiv 2611.18449）·
+      <a href="../papers/2026-wright-it-threshold-dv-signatures.md">IT 門檻簽章</a>（arXiv 2611.18355）·
+      <a href="../papers/2026-priya-vellsslh.md">VellSSLH</a>（arXiv 2611.18463）
+    </p>
+    <div class="src">建議出自各論文的討論章節，角色歸類為推論。「資源受限裝置」沒有列入，因為相關論文提出的是防禦方案，不是攻擊。</div>
+  </div>
+  <div class="pageno">11</div>
+</section>
+
+</main>
+
+<nav class="bar-ui" aria-label="投影片控制">
+  <button id="prev" aria-label="上一張">←</button>
+  <span class="counter" id="counter">1 / 1</span>
+  <button id="next" aria-label="下一張">→</button>
+  <button id="fs" aria-label="全螢幕">全螢幕</button>
+  <button id="theme" aria-label="切換深淺色">深／淺</button>
+</nav>
+<div class="progress" id="progress"></div>
+<div class="hint">← → 換頁 · F 全螢幕 · 點擊節點開啟 wiki 頁面</div>
+
+<script>
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+
+  /* 節點：id, 類型, 群, 標籤, x, y, 寬, wiki 路徑, 完整名稱 */
+  const NODES = [
+    ['cantraj', 'paper', 1, 'CANTraj', 90, 90, 112, 'papers/2026-wang-cantraj.md', 'CANTraj：從 CAN 訊號還原車輛軌跡'],
+    ['magnet', 'paper', 1, '列車磁場', 120, 380, 112, 'papers/2026-czybik-train-magnetometer-privacy.md', '同一條軌道上：電氣化鐵路的磁場隱私洩漏'],
+    ['route', 'concept', 1, '路徑推論', 250, 100, 106, 'concepts/route-inference-attack.md', '路徑推論攻擊'],
+    ['loc', 'concept', 1, '位置隱私', 270, 215, 106, 'concepts/location-privacy.md', '位置隱私'],
+    ['zero', 'concept', 1, '免權限感測器', 280, 340, 142, 'concepts/zero-permission-sensor-leakage.md', '免權限感測器洩漏'],
+    ['tmd', 'concept', 1, '交通方式偵測', 90, 520, 142, 'concepts/transport-mode-detection.md', '交通方式偵測'],
+    ['coloc', 'concept', 1, '同行推論', 270, 520, 106, 'concepts/colocation-inference.md', '同行推論'],
+    ['can', 'system', 1, '車載 CAN', 90, 200, 116, 'systems/vehicle-can-bus.md', '車載 CAN 匯流排'],
+    ['android', 'system', 1, 'Android', 440, 285, 110, 'systems/android.md', 'Android'],
+    ['ios', 'system', 1, 'iOS', 445, 345, 84, 'systems/ios.md', 'iOS'],
+    ['side', 'concept', 0, '旁通道攻擊', 500, 420, 126, 'concepts/side-channel-attacks.md', '旁通道攻擊'],
+    ['ecdsa', 'paper', 2, 'RFC 6979', 630, 90, 122, 'papers/2026-prosianoi-rfc6979-deterministic-ecdsa.md', 'secp256k1 上的確定性 ECDSA'],
+    ['nonce', 'concept', 2, 'ECDSA nonce', 630, 210, 144, 'concepts/ecdsa-nonce-security.md', 'ECDSA nonce 安全'],
+    ['secp', 'system', 2, 'secp256k1', 790, 90, 128, 'systems/secp256k1-implementations.md', 'secp256k1 簽章實作'],
+    ['digsig', 'concept', 2, '數位簽章', 780, 210, 106, 'concepts/digital-signatures.md', '數位簽章'],
+    ['thresh', 'concept', 2, '門檻簽章', 770, 330, 106, 'concepts/threshold-signatures.md', '門檻簽章'],
+    ['itthr', 'paper', 2, 'IT 門檻簽章', 920, 300, 140, 'papers/2026-wright-it-threshold-dv-signatures.md', '資訊理論安全門檻指定驗證者簽章'],
+    ['itsec', 'concept', 2, '資訊理論安全', 920, 420, 142, 'concepts/information-theoretic-security.md', '資訊理論安全'],
+    ['rcd', 'system', 2, '資源受限裝置', 925, 175, 146, 'systems/resource-constrained-devices.md', '資源受限裝置'],
+    ['vell', 'paper', 3, 'VellSSLH', 720, 640, 122, 'papers/2026-priya-vellsslh.md', 'VellSSLH：選擇性推測載入強化'],
+    ['spectre', 'concept', 3, 'Spectre', 620, 520, 104, 'concepts/spectre.md', 'Spectre（推測執行攻擊）'],
+    ['slh', 'concept', 3, 'SLH 強化', 800, 520, 110, 'concepts/speculative-load-hardening.md', '推測載入強化（SLH）'],
+    ['sct', 'concept', 3, '推測常數時間', 560, 660, 142, 'concepts/speculative-constant-time.md', '推測常數時間（SCT）'],
+    ['llvm', 'system', 3, 'LLVM', 900, 640, 84, 'systems/llvm.md', 'LLVM'],
+    /* 缺少的節點（開放問題） */
+    ['m_route', 'missing', 1, '起點未知追蹤', 390, 120, 142, null, '起點未知時的車輛追蹤'],
+    ['m_perm', 'missing', 1, '權限 vs 功能', 430, 530, 142, null, '感測器權限與良性功能的取捨'],
+    ['m_astar', 'missing', 2, 'A* 尚未證明', 470, 200, 142, null, 'HMAC_DRBG 是否滿足 A*'],
+    ['m_multi', 'missing', 2, '多驗證者實用性', 660, 420, 156, null, '資訊理論簽章在驗證者多時的實用性'],
+    ['m_ir', 'missing', 3, 'IR → 機器碼', 360, 680, 142, null, 'IR 層保證能否延伸到機器碼'],
+    ['m_entry', 'missing', 3, '入口屏障成本', 820, 730, 142, null, '短函數的入口 LFENCE 成本']
+  ];
+
+  /* 邊：m 歸屬、p 上位（箭頭指向上位）、r 相關、s 系統、x 對立、q 缺少 */
+  const EDGES = [
+    ['cantraj', 'route', 'm'], ['cantraj', 'loc', 'm'], ['cantraj', 'can', 'm'],
+    ['magnet', 'zero', 'm'], ['magnet', 'tmd', 'm'], ['magnet', 'coloc', 'm'], ['magnet', 'loc', 'm'], ['magnet', 'side', 'm'],
+    ['ecdsa', 'nonce', 'm'], ['ecdsa', 'digsig', 'm'], ['ecdsa', 'secp', 'm'],
+    ['itthr', 'thresh', 'm'], ['itthr', 'itsec', 'm'], ['itthr', 'digsig', 'm'], ['itthr', 'rcd', 'm'],
+    ['vell', 'slh', 'm'], ['vell', 'sct', 'm'], ['vell', 'spectre', 'm'], ['vell', 'llvm', 'm'],
+    ['route', 'loc', 'p'], ['zero', 'side', 'p'], ['tmd', 'zero', 'p'], ['coloc', 'zero', 'p'],
+    ['spectre', 'side', 'p'], ['slh', 'spectre', 'p'], ['sct', 'side', 'p'], ['nonce', 'digsig', 'p'], ['thresh', 'digsig', 'p'],
+    ['zero', 'loc', 'r'], ['nonce', 'side', 'r'], ['sct', 'slh', 'r'], ['itsec', 'thresh', 'r'],
+    ['can', 'route', 's'], ['android', 'zero', 's'], ['ios', 'zero', 's'], ['secp', 'nonce', 's'], ['rcd', 'thresh', 's'], ['llvm', 'slh', 's'],
+    ['cantraj', 'magnet', 'x'],
+    ['m_route', 'route', 'q'], ['m_perm', 'zero', 'q'], ['m_astar', 'nonce', 'q'], ['m_multi', 'thresh', 'q'], ['m_ir', 'sct', 'q'], ['m_entry', 'slh', 'q']
+  ];
+  const X_CTRL = { x: 230, y: 235 };
+
+  const ALL = [-10, -30, 1020, 840];
+  const C1 = [-67, 30, 644, 560];
+  const C2 = [515, 30, 545, 476];
+  const C3 = [455, 374, 520, 452];
+  const VIEWS = {
+    all: { box: ALL, focus: null, x: true },
+    hubs: { box: ALL, focus: ['zero', 'magnet', 'side', 'loc', 'ecdsa', 'vell', 'digsig'], ann: ['hubs'] },
+    c1: { box: C1, focus: ['cantraj', 'magnet', 'route', 'loc', 'zero', 'tmd', 'coloc', 'can', 'android', 'ios'], x: true },
+    x: { box: C1, focus: ['cantraj', 'magnet', 'loc', 'route', 'zero'], x: true, xhl: true, ann: ['x'],
+         hl: [['cantraj', 'loc'], ['magnet', 'loc']] },
+    c2: { box: C2, focus: ['ecdsa', 'nonce', 'secp', 'digsig', 'thresh', 'itthr', 'itsec', 'rcd'] },
+    spec: { box: C2, focus: ['digsig', 'nonce', 'thresh', 'itsec', 'ecdsa', 'itthr'], ann: ['spec'],
+            hl: [['nonce', 'digsig'], ['thresh', 'digsig'], ['itsec', 'thresh'], ['ecdsa', 'nonce'], ['itthr', 'itsec']] },
+    c3: { box: C3, focus: ['vell', 'spectre', 'slh', 'sct', 'llvm'] },
+    trade: { box: C3, focus: ['vell', 'slh', 'llvm', 'spectre'], hl: [['vell', 'slh'], ['llvm', 'slh'], ['vell', 'llvm']] },
+    bridge: { box: ALL, focus: ['side', 'zero', 'nonce', 'spectre', 'sct', 'magnet'],
+              hl: [['zero', 'side'], ['nonce', 'side'], ['spectre', 'side'], ['sct', 'side'], ['magnet', 'side']] },
+    missing: { box: ALL, focus: ['route', 'zero', 'nonce', 'thresh', 'sct', 'slh'], missing: true },
+    systems: { box: ALL, focus: ['can', 'android', 'ios', 'secp', 'rcd', 'llvm'],
+               hl: [['can', 'route'], ['android', 'zero'], ['ios', 'zero'], ['secp', 'nonce'], ['rcd', 'thresh'], ['llvm', 'slh']] }
+  };
+  const HUBS = { zero: 9, magnet: 9, side: 8, loc: 7, ecdsa: 7, vell: 7, digsig: 6 };
+
+  const byId = {};
+  NODES.forEach(n => { byId[n[0]] = { id: n[0], t: n[1], c: n[2], label: n[3], x: n[4], y: n[5], w: n[6], href: n[7], full: n[8] }; });
+
+  function mk(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  /* 從 from 指向 to 的直線，與 to 節點外框的交點 */
+  function clip(from, to) {
+    const dx = from.x - to.x, dy = from.y - to.y;
+    const sx = (to.w / 2 + 4) / Math.max(Math.abs(dx), 1e-6);
+    const sy = 26 / Math.max(Math.abs(dy), 1e-6);
+    const s = Math.min(sx, sy);
+    return { x: to.x + dx * s, y: to.y + dy * s };
+  }
+  function shapeFor(g, n) {
+    const hw = n.w / 2;
+    if (n.t === 'system') {
+      return mk('polygon', { class: 'shape', points: [[-hw + 13, -22], [hw - 13, -22], [hw, 0], [hw - 13, 22], [-hw + 13, 22], [-hw, 0]].map(p => p.join(',')).join(' ') }, g);
+    }
+    return mk('rect', { class: 'shape', x: -hw, y: -22, width: n.w, height: 44, rx: n.t === 'concept' ? 22 : 7 }, g);
+  }
+
+  function build() {
+    const svg = mk('svg', { class: 'graph', viewBox: ALL.join(' '), preserveAspectRatio: 'xMidYMid meet', role: 'img' });
+    mk('title', {}, svg).textContent = 'sec-paper-wiki 知識圖譜';
+    const gE = mk('g', {}, svg), gN = mk('g', {}, svg), gA = mk('g', {}, svg);
+
+    EDGES.forEach(([a, b, t]) => {
+      const A = byId[a], B = byId[b];
+      const k = 'k' + (A.c || B.c);
+      let e;
+      if (t === 'x') {
+        const p1 = clip(X_CTRL, A), p2 = clip(X_CTRL, B);
+        e = mk('path', { d: `M${p1.x},${p1.y} Q${X_CTRL.x},${X_CTRL.y} ${p2.x},${p2.y}` }, gE);
+      } else {
+        const p1 = clip(B, A), p2 = clip(A, B);
+        e = mk('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }, gE);
+      }
+      e.setAttribute('class', `e ${t} ${k}`);
+      e.dataset.a = a; e.dataset.b = b; e.dataset.t = t;
+    });
+
+    NODES.forEach(r => {
+      const n = byId[r[0]];
+      const holder = n.href ? mk('a', { href: '../' + n.href, target: '_blank' }, gN) : gN;
+      const g = mk('g', { class: `n ${n.t} k${n.c}${n.t === 'missing' ? ' miss' : ''}`, transform: `translate(${n.x},${n.y})` }, holder);
+      g.dataset.id = n.id;
+      mk('title', {}, g).textContent = n.full;
+      shapeFor(g, n);
+      mk('text', { x: 0, y: 1 }, g).textContent = n.label;
+    });
+
+    /* 樞紐連結數徽章 */
+    for (const id in HUBS) {
+      const n = byId[id];
+      const g = mk('g', { class: 'ann badge', transform: `translate(${n.x + n.w / 2 - 4},${n.y - 24})` }, gA);
+      g.dataset.ann = 'hubs';
+      mk('circle', { r: 15 }, g);
+      mk('text', { x: 0, y: 1 }, g).textContent = HUBS[id];
+    }
+    /* 標籤膠囊 */
+    function pill(view, x, y, w, text, color) {
+      const g = mk('g', { class: 'ann pill', transform: `translate(${x},${y})` }, gA);
+      g.dataset.ann = view;
+      if (color) g.style.setProperty('--pc', color);
+      mk('rect', { x: -w / 2, y: -16, width: w, height: 32, rx: 16 }, g);
+      mk('text', { x: 0, y: 1 }, g).textContent = text;
+    }
+    pill('x', 105, 300, 104, '結論相反');
+    pill('spec', 600, 290, 120, '計算安全', 'var(--c0)');
+    pill('spec', 920, 480, 120, '無條件安全', 'var(--c2)');
+    return svg;
+  }
+
+  function applyView(svg, v) {
+    const F = v.focus ? new Set(v.focus) : null;
+    const HL = new Set((v.hl || []).flatMap(([a, b]) => [a + '|' + b, b + '|' + a]));
+    svg.querySelectorAll('.n').forEach(g => {
+      const id = g.dataset.id;
+      if (g.classList.contains('miss')) g.classList.toggle('show', !!v.missing);
+      else g.classList.toggle('dim', !!F && !F.has(id));
+    });
+    svg.querySelectorAll('.e').forEach(e => {
+      const { a, b, t } = e.dataset;
+      if (t === 'q') { e.classList.toggle('show', !!v.missing); return; }
+      if (t === 'x') { e.classList.toggle('show', !!v.x); e.classList.toggle('hl', !!v.xhl); return; }
+      const hl = HL.has(a + '|' + b);
+      const on = !F || (F.has(a) && F.has(b));
+      e.classList.toggle('hl', hl);
+      e.classList.toggle('on', !!F && on && !hl);
+      e.classList.toggle('off', !!F && !on && !hl);
+      if (t === 'p') e.setAttribute('marker-end', hl || (F && on) ? 'url(#a-on)' : (F ? 'url(#a-dim)' : 'url(#a-off)'));
+    });
+    svg.querySelectorAll('.ann').forEach(g => g.classList.toggle('show', (v.ann || []).includes(g.dataset.ann)));
+  }
+
+  function tween(svg, from, to, ms) {
+    if (svg._raf) cancelAnimationFrame(svg._raf);
+    const t0 = performance.now();
+    const ease = t => 1 - Math.pow(1 - t, 3);
+    (function step(now) {
+      const t = Math.min(1, (now - t0) / ms), k = ease(t);
+      svg.setAttribute('viewBox', from.map((f, i) => f + (to[i] - f) * k).join(' '));
+      if (t < 1) svg._raf = requestAnimationFrame(step);
+    })(t0);
+  }
+
+  /* ---------- 投影片 ---------- */
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  slides.forEach(s => {
+    const svg = build();
+    s.querySelector('.gslot').appendChild(svg);
+    s._svg = svg;
+    const v = VIEWS[s.dataset.view];
+    applyView(svg, v);
+    svg.setAttribute('viewBox', v.box.join(' '));
+  });
+
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let cur = -1;
+
+  function fit() {
+    const s = Math.min(window.innerWidth / 1320, (window.innerHeight - 56) / 760);
+    document.documentElement.style.setProperty('--s', Math.max(s, 0.2));
+  }
+  function show(n) {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    if (n === cur) return;
+    const target = slides[n], svg = target._svg, to = VIEWS[target.dataset.view];
+    if (cur >= 0) {
+      const from = VIEWS[slides[cur].dataset.view];
+      applyView(svg, from);
+      svg.setAttribute('viewBox', from.box.join(' '));
+      svg.getBoundingClientRect();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        applyView(svg, to);
+        tween(svg, from.box, to.box, 700);
+      }));
+    }
+    slides.forEach((el, k) => el.classList.toggle('active', k === n));
+    cur = n;
+    counter.textContent = (n + 1) + ' / ' + slides.length;
+    progress.style.width = ((n + 1) / slides.length * 100) + '%';
+    try { if (location.hash !== '#' + (n + 1)) history.replaceState(null, '', '#' + (n + 1)); } catch (e) {}
+  }
+  const next = () => show(cur + 1), prev = () => show(cur - 1);
+
+  document.getElementById('next').onclick = next;
+  document.getElementById('prev').onclick = prev;
+  document.getElementById('fs').onclick = () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  };
+  document.getElementById('theme').onclick = () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('graph-deck-theme', root.dataset.theme); } catch (e) {}
+  };
+  try { const t = localStorage.getItem('graph-deck-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'f' || e.key === 'F') document.getElementById('fs').click();
+  });
+  let x0 = null;
+  document.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 40) (dx < 0 ? next : prev)();
+    x0 = null;
+  });
+  window.addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

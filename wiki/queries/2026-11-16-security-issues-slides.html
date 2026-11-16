@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 資安問題速覽</title>
+<meta name="description" content="根據 sec-paper-wiki 收錄的 5 篇 2026 年資安論文，整理當前資安問題的簡報。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #e9ecf1;
+  --slide: #ffffff;
+  --ink: #141922;
+  --muted: #5a6473;
+  --line: #e1e5eb;
+  --card: #f4f6f9;
+  --accent: #2647d4;
+  --c1: #0d857a;   /* 隱私推論 */
+  --c2: #b8720a;   /* 簽章 */
+  --c3: #6e3fc4;   /* 微架構 */
+  --warn: #c2410c;
+  --shadow: 0 10px 40px rgba(20, 25, 34, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #090c11;
+    --slide: #131820;
+    --ink: #e7ebf1;
+    --muted: #98a2b1;
+    --line: #29303b;
+    --card: #1b212b;
+    --accent: #7f98ff;
+    --c1: #3cc3b2;
+    --c2: #efb04c;
+    --c3: #a88bff;
+    --warn: #fb923c;
+    --shadow: 0 10px 40px rgba(0, 0, 0, .5);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #090c11;
+  --slide: #131820;
+  --ink: #e7ebf1;
+  --muted: #98a2b1;
+  --line: #29303b;
+  --card: #1b212b;
+  --accent: #7f98ff;
+  --c1: #3cc3b2;
+  --c2: #efb04c;
+  --c3: #a88bff;
+  --warn: #fb923c;
+  --shadow: 0 10px 40px rgba(0, 0, 0, .5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---------- 舞台 ---------- */
+.stage {
+  position: fixed;
+  inset: 0 0 56px 0;
+  display: grid;
+  place-items: center;
+}
+.slide {
+  position: absolute;
+  width: 1280px;
+  height: 720px;
+  background: var(--slide);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 64px 80px 56px;
+  transform: scale(var(--s, 1));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .35s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.slide.active { opacity: 1; visibility: visible; }
+.slide::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 8px;
+  background: var(--band, var(--accent));
+}
+.slide.c1 { --band: var(--c1); }
+.slide.c2 { --band: var(--c2); }
+.slide.c3 { --band: var(--c3); }
+
+/* ---------- 文字 ---------- */
+.kicker {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--band, var(--accent));
+  margin-bottom: 14px;
+}
+h1 { font-size: 64px; font-weight: 900; line-height: 1.15; letter-spacing: -.01em; }
+h2 { font-size: 40px; font-weight: 900; line-height: 1.25; margin-bottom: 28px; }
+h3 { font-size: 21px; font-weight: 700; margin-bottom: 8px; }
+p, li { font-size: 19px; line-height: 1.65; color: var(--ink); }
+.muted { color: var(--muted); }
+.lead { font-size: 23px; line-height: 1.6; color: var(--muted); max-width: 980px; }
+ul.clean { list-style: none; }
+ul.clean li { padding-left: 22px; position: relative; margin-bottom: 8px; }
+ul.clean li::before {
+  content: "";
+  position: absolute;
+  left: 2px; top: .7em;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  background: var(--band, var(--accent));
+}
+.tag {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1.5px solid var(--warn);
+  color: var(--warn);
+  vertical-align: middle;
+  margin-left: 6px;
+  letter-spacing: .04em;
+}
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+/* ---------- 版面元件 ---------- */
+.grow { flex: 1; min-height: 0; }
+.row { display: grid; gap: 22px; }
+.cols-2 { grid-template-columns: 1fr 1fr; }
+.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 22px 24px;
+  border-top: 4px solid var(--cc, var(--band, var(--accent)));
+}
+.card p, .card li { font-size: 17px; line-height: 1.6; }
+.card.k1 { --cc: var(--c1); }
+.card.k2 { --cc: var(--c2); }
+.card.k3 { --cc: var(--c3); }
+.stat .num {
+  font-size: 50px;
+  font-weight: 900;
+  line-height: 1.05;
+  color: var(--band, var(--accent));
+  letter-spacing: -.02em;
+  white-space: nowrap;
+}
+.stat .num small { font-size: 26px; font-weight: 700; }
+.stat .lbl { font-size: 16px; line-height: 1.5; color: var(--muted); margin-top: 8px; }
+.callout {
+  margin-top: 22px;
+  padding: 16px 22px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--band, var(--accent)) 10%, transparent);
+  border-left: 4px solid var(--band, var(--accent));
+  font-size: 19px;
+  line-height: 1.6;
+}
+table { width: 100%; border-collapse: collapse; font-size: 17px; }
+th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.5; }
+th { font-size: 14px; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+td strong { font-weight: 700; }
+.src {
+  margin-top: auto;
+  padding-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+.src a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.pageno {
+  position: absolute;
+  right: 36px; top: 28px;
+  font-size: 13px;
+  color: var(--muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* 封面 */
+.cover { justify-content: center; }
+.cover h1 { margin: 6px 0 22px; }
+.cover .meta { margin-top: 42px; display: flex; gap: 36px; color: var(--muted); font-size: 17px; }
+.cover .meta b { color: var(--ink); font-weight: 700; display: block; font-size: 30px; }
+.chips { display: flex; gap: 10px; margin-top: 30px; flex-wrap: wrap; }
+.chip { font-size: 15px; font-weight: 700; padding: 6px 14px; border-radius: 999px; color: #fff; }
+.chip.k1 { background: var(--c1); } .chip.k2 { background: var(--c2); } .chip.k3 { background: var(--c3); }
+:root[data-theme="dark"] .chip, :root:not([data-theme="light"]) .chip { color: #0b0e13; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .chip { color: #fff; } }
+
+/* 光譜圖 */
+.spectrum { position: relative; margin: 8px 0 26px; }
+.spectrum .bar {
+  height: 14px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--c2));
+}
+.spectrum .ends { display: flex; justify-content: space-between; margin-top: 10px; font-weight: 700; font-size: 17px; }
+
+/* 三群地圖 */
+.map { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.map .card h3 { font-size: 22px; }
+.map .card .pp { font-size: 15px; color: var(--muted); margin-top: 10px; }
+.bridge {
+  margin-top: 20px;
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  padding: 14px 22px;
+  font-size: 18px;
+  text-align: center;
+}
+
+/* ---------- 控制列 ---------- */
+.bar-ui {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: 56px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.bar-ui button {
+  font: inherit;
+  background: var(--slide);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  height: 34px; min-width: 40px; padding: 0 12px;
+  cursor: pointer;
+}
+.bar-ui button:hover { border-color: var(--accent); }
+.counter { font-family: "JetBrains Mono", ui-monospace, monospace; min-width: 64px; text-align: center; }
+.progress { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--accent); transition: width .3s ease; }
+.hint { position: fixed; right: 16px; bottom: 18px; font-size: 12px; color: var(--muted); }
+@media (max-width: 720px) { .hint { display: none; } }
+
+/* ---------- 列印：每頁一張投影片 ---------- */
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  body { overflow: visible; background: #fff; }
+  .stage { position: static; display: block; }
+  .slide {
+    position: relative; transform: none !important;
+    opacity: 1; visibility: visible;
+    border-radius: 0; box-shadow: none;
+    page-break-after: always; break-after: page;
+  }
+  .bar-ui, .progress, .hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<main class="stage" id="stage">
+
+<!-- 1 封面 -->
+<section class="slide cover">
+  <div class="kicker">SEC-PAPER-WIKI · 研究地圖簡報</div>
+  <h1>2026 資安問題速覽<br>五篇論文看到的三個斷層</h1>
+  <p class="lead">「看起來安全」的假設正在一個個失效：刪除 GPS 的資料仍能追蹤你、免權限的感測器能推論你搭哪班車、部署十多年的簽章標準依賴一個沒人證明過的假設、常數時間的密碼學程式在推測執行下仍會洩漏。</p>
+  <div class="chips">
+    <span class="chip k1">非位置訊號的隱私推論</span>
+    <span class="chip k2">數位簽章的安全基礎</span>
+    <span class="chip k3">微架構旁通道與編譯器防禦</span>
+  </div>
+  <div class="meta">
+    <div><b>5</b>篇論文</div>
+    <div><b>13</b>個概念頁</div>
+    <div><b>6</b>個目標系統</div>
+    <div><b>2026-11-16</b>資料截至</div>
+  </div>
+</section>
+
+<!-- 2 地圖 -->
+<section class="slide">
+  <div class="kicker">研究地圖</div>
+  <h2>三個問題群，由「旁通道」串在一起</h2>
+  <div class="map">
+    <div class="card k1">
+      <h3>① 非位置訊號的隱私推論</h3>
+      <p>沒給 GPS、沒給位置權限，不代表沒有位置資訊。</p>
+      <p class="pp">CANTraj · 列車磁場隱私洩漏（CCS '26）</p>
+    </div>
+    <div class="card k2">
+      <h3>② 數位簽章的安全基礎</h3>
+      <p>廣泛部署的方案依賴未證明的假設；另一端則嘗試完全捨棄計算假設。</p>
+      <p class="pp">RFC 6979 確定性 ECDSA · IT 門檻簽章</p>
+    </div>
+    <div class="card k3">
+      <h3>③ 微架構旁通道與編譯器防禦</h3>
+      <p>常數時間程式在 Spectre 下仍會洩漏；防禦要兼顧可證明與效能。</p>
+      <p class="pp">VellSSLH</p>
+    </div>
+  </div>
+  <div class="bridge"><b>跨群主軸：旁通道</b>　微架構狀態（③）· nonce 位元外洩（②）· 環境物理訊號（①）<span class="tag">推論</span></div>
+  <div class="src">來源：<a href="../overview.md">overview.md</a> · <a href="../concepts/side-channel-attacks.md">side-channel-attacks</a></div>
+  <div class="pageno">02</div>
+</section>
+
+<!-- 3 CANTraj -->
+<section class="slide c1">
+  <div class="kicker">問題 ① · 車輛資料</div>
+  <h2>刪除 GPS ≠ 保護位置：車速＋方向盤就能還原路徑</h2>
+  <div class="row cols-3">
+    <div class="stat">
+      <div class="num">921→43<small> m</small></div>
+      <div class="lbl">加入道路圖後，5 分鐘片段的中位位置誤差（方向盤航位推算 → 線上粒子濾波器）</div>
+    </div>
+    <div class="stat">
+      <div class="num">56→87<small>%</small></div>
+      <div class="lbl">在速度之外加上方向盤訊號後，5 分鐘路徑還原率</div>
+    </div>
+    <div class="stat">
+      <div class="num">≥82.6<small>%</small></div>
+      <div class="lbl">即使方向盤量化到 10°、速度量化到 1 m/s 等最嚴苛劣化，仍能還原的路徑比例</div>
+    </div>
+  </div>
+  <div class="row cols-2" style="margin-top:30px">
+    <ul class="clean">
+      <li>資料收集者遍布：用量計費保險、車隊管理、售後駕駛輔助、公開駕駛資料集</li>
+      <li>統一重測 6 種已發表攻擊：不同方法在不同片段失敗，逐片段挑選最佳方法可還原 98%</li>
+    </ul>
+    <ul class="clean">
+      <li>不給起始航向，離線集束搜尋的中位誤差只從 37 m 升到 41 m</li>
+      <li>LLM agent 挑選候選路徑的效果與簡單選擇器相當，但成本高約 33 倍（36.4 s 對 1.1 s）</li>
+    </ul>
+  </div>
+  <div class="src">來源：<a href="../papers/2026-wang-cantraj.md">CANTraj</a>（arXiv 2611.18442）p.1、p.6、p.9–12</div>
+  <div class="pageno">03</div>
+</section>
+
+<!-- 4 磁場 -->
+<section class="slide c1">
+  <div class="kicker">問題 ① · 手機感測器</div>
+  <h2>不需要任何權限，磁力計就知道你在哪班車上</h2>
+  <div class="row cols-4">
+    <div class="stat"><div class="num">16.7<small> Hz</small></div><div class="lbl">中北歐交流電氣化鐵路的牽引電流頻率，在車廂內可量測</div></div>
+    <div class="stat"><div class="num">0.93</div><div class="lbl">只用磁力計偵測「正在搭電車」的 MCC（F1 0.98）</div></div>
+    <div class="stat"><div class="num">0.79</div><div class="lbl">比對兩支手機的磁場軌跡，推論「同車」的 MCC（F1 0.89）</div></div>
+    <div class="stat"><div class="num">0<small> 權限</small></div><div class="lbl">Android（上限 200 Hz）與 iOS（上限 100 Hz）都允許免權限讀取</div></div>
+  </div>
+  <div class="row cols-2" style="margin-top:30px">
+    <div class="card"><h3>誰會這樣做？</h3><p>被入侵的第三方 SDK（例如廣告商）大規模追蹤，或被竄改的通訊 App 鎖定特定對象。只要有一條已知位置的參考軌跡，同行推論就能直接暴露其他人的位置。</p></div>
+    <div class="card"><h3>論文的建議</h3><p>磁力計應需要明確權限；或把免權限的取樣率壓在 35 Hz 以下，16.7 Hz 成分就無法擷取。</p></div>
+  </div>
+  <div class="src">來源：<a href="../papers/2026-czybik-train-magnetometer-privacy.md">列車磁場隱私洩漏</a>（CCS 2026）p.3–4、p.7、p.11–12</div>
+  <div class="pageno">04</div>
+</section>
+
+<!-- 5 劣化比較 -->
+<section class="slide c1">
+  <div class="kicker">問題 ① · 跨論文洞見</div>
+  <h2>「降低訊號品質」能防禦嗎？兩篇給出相反答案</h2>
+  <table>
+    <tr><th></th><th>CANTraj（車輛訊號）</th><th>列車磁場（手機磁力計）</th></tr>
+    <tr><td><strong>攻擊利用的訊號</strong></td><td>低頻運動學：速度、方向盤角</td><td>單一特定頻率：16.7 Hz</td></tr>
+    <tr><td><strong>外部先驗</strong></td><td>道路圖提供很強的約束</td><td>無</td></tr>
+    <tr><td><strong>劣化手段</strong></td><td>量化（10°、1 m/s）、降到 1 Hz、加雜訊</td><td>把取樣率限制在 35 Hz 以下</td></tr>
+    <tr><td><strong>效果</strong></td><td>幾乎無效，仍能還原 ≥ 82.6% 的路徑</td><td>攻擊基礎消失（論文提議，尚未實測部署）</td></tr>
+  </table>
+  <div class="callout">劣化防禦是否有效，取決於攻擊用的是<b>哪一段頻帶</b>，以及<b>有沒有外部先驗</b>可以補回資訊。評估隱私保護時，必須測試針對劣化後訊號重新調整的攻擊者。<span class="tag">推論</span></div>
+  <div class="src">來源：<a href="../concepts/location-privacy.md">location-privacy</a> · CANTraj p.11–12 · 列車磁場 p.12</div>
+  <div class="pageno">05</div>
+</section>
+
+<!-- 6 RFC 6979 -->
+<section class="slide c2">
+  <div class="kicker">問題 ② · 簽章標準</div>
+  <h2>Bitcoin／Ethereum 的簽章，建立在一個沒人證明過的假設上</h2>
+  <div class="row cols-2" style="gap:40px">
+    <div>
+      <p>RFC 6979 用 HMAC_DRBG(私鑰 ‖ 雜湊) 產生 ECDSA nonce。作者指出它真正需要的是假設 <b class="mono">A*</b>：「已知公鑰時，這樣產生的簽章紀錄與隨機 nonce 不可區分」。</p>
+      <ul class="clean" style="margin-top:16px">
+        <li><b>反例</b>：存在一個標準意義下的 PRF，用它產生 nonce 卻只要一個簽章就能還原私鑰。所以「HMAC 是 PRF」推不出 RFC 6979 安全</li>
+        <li>A* 與 AI-PRF 互不蘊含；目前沒有已知攻擊，但也沒有標準模型的證明</li>
+      </ul>
+    </div>
+    <div class="row cols-2" style="align-content:start">
+      <div class="stat"><div class="num">28/31</div><div class="lbl">個 secp256k1 實作預設使用確定性簽章，不加額外熵</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">個實作採用可以免除 A* 的「獨立 nonce 金鑰」（RFC 6979 §3.6）</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">個實作測試 h ≥ n 分支（論文附錄 B 補上測試向量）</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">個移植版沿用舊行為（NBitcoin、dcrd、btcec v2），屬於相容性 bug，波及 LND、go-ethereum</div></div>
+    </div>
+  </div>
+  <div class="src">來源：<a href="../papers/2026-prosianoi-rfc6979-deterministic-ecdsa.md">RFC 6979 確定性 ECDSA</a>（arXiv 2611.18449）p.1、p.4、p.14–18 · <a href="../systems/secp256k1-implementations.md">secp256k1-implementations</a></div>
+  <div class="pageno">06</div>
+</section>
+
+<!-- 7 光譜 -->
+<section class="slide c2">
+  <div class="kicker">問題 ② · 安全基礎的光譜</div>
+  <h2>要可公開驗證，還是要無條件安全？</h2>
+  <div class="spectrum">
+    <div class="bar"></div>
+    <div class="ends"><span style="color:var(--accent)">計算安全：ECDSA · EdDSA · ML-DSA</span><span style="color:var(--c2)">資訊理論安全：USS · IT 門檻簽章</span></div>
+  </div>
+  <div class="row cols-2">
+    <div class="card">
+      <h3>計算安全</h3>
+      <ul class="clean">
+        <li>任何人都能用公鑰驗證，金鑰短</li>
+        <li>依賴困難度假設，而且像 A* 這樣的假設可能根本沒被證明</li>
+        <li>後量子方案（格）仍然是計算安全</li>
+      </ul>
+    </div>
+    <div class="card k2">
+      <h3>資訊理論安全（IT 門檻簽章，2026）</h3>
+      <ul class="clean">
+        <li>面對無限算力（包括量子）攻擊者，偽造機率 ≤ 1/p<sup>Δk</sup></li>
+        <li>代價：只有預先登記的驗證者能驗證、金鑰只能用一次、金鑰很長</li>
+        <li>Raspberry Pi 4 最壞情況：簽章約 232 ms、驗證約 2 s；無 dealer 簽章 ≤ 250 ms，Threshold ML-DSA-87 約 560 ms</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">比較適合成員固定的封閉系統，例如無人機群、工業控制、支付基礎設施。<span class="tag">推論</span></div>
+  <div class="src">來源：<a href="../concepts/digital-signatures.md">digital-signatures</a> · <a href="../papers/2026-wright-it-threshold-dv-signatures.md">IT 門檻簽章</a>（arXiv 2611.18355）p.1、p.9、p.13</div>
+  <div class="pageno">07</div>
+</section>
+
+<!-- 8 VellSSLH -->
+<section class="slide c3">
+  <div class="kicker">問題 ③ · 推測執行</div>
+  <h2>常數時間不夠：Spectre 仍會讓密碼學程式洩漏</h2>
+  <div class="row cols-2" style="gap:40px">
+    <div>
+      <p>VellSSLH 把每個值標成三種型別，只對 <b>T</b> 加保護：</p>
+      <table style="margin:10px 0 14px">
+        <tr><th>型別</th><th>正常執行</th><th>推測執行</th><th>處理</th></tr>
+        <tr><td class="mono">P</td><td>公開</td><td>公開</td><td>不需處理</td></tr>
+        <tr><td class="mono">T</td><td>公開</td><td>可能秘密</td><td><b>protect 遮罩</b></td></tr>
+        <tr><td class="mono">S</td><td>秘密</td><td>秘密</td><td>不能被觀察</td></tr>
+      </table>
+      <p class="muted" style="font-size:16px">檢查器的健全性以 Rocq 證明（33.7 萬行），但保證只到 LLVM IR；機器碼的安全還取決於後端與硬體假設。</p>
+    </div>
+    <div class="row cols-2" style="align-content:start">
+      <div class="stat"><div class="num">−4.03<small>%</small></div><div class="lbl">24 個密碼學 API 的幾何平均執行時間低於 LLVM SLH（13 個較快、8 個較慢、3 個無定論）</div></div>
+      <div class="stat"><div class="num">−22.7<small>%</small></div><div class="lbl">X25519 比 LLVM SLH 快，相對未保護程式只多 1.86%</div></div>
+      <div class="stat"><div class="num">149→3</div><div class="lbl">選擇性放置後的保護點數（Salsa20 核心）</div></div>
+      <div class="stat"><div class="num">+7~10<small>%</small></div><div class="lbl">約 80 ns 的短函數反而比 LLVM SLH 慢，因為入口 LFENCE 是固定成本</div></div>
+    </div>
+  </div>
+  <div class="src">來源：<a href="../papers/2026-priya-vellsslh.md">VellSSLH</a>（arXiv 2611.18463）p.2、p.7、p.15–20 · <a href="../concepts/speculative-load-hardening.md">speculative-load-hardening</a></div>
+  <div class="pageno">08</div>
+</section>
+
+<!-- 9 旁通道 -->
+<section class="slide">
+  <div class="kicker">跨領域主題</div>
+  <h2>旁通道的三種載體：秘密總是從「副作用」流出去</h2>
+  <div class="row cols-3">
+    <div class="card k3">
+      <h3>微架構狀態</h3>
+      <p>分支預測錯誤時，推測執行讀到秘密，並在快取中留下痕跡（Spectre v1）。</p>
+      <p class="muted" style="margin-top:10px">防禦：SLH、SCT 型別系統</p>
+    </div>
+    <div class="card k2">
+      <h3>nonce 位元外洩</h3>
+      <p>功耗或時間洩漏 ECDSA nonce 的部分位元。256 位元曲線上一個外洩位元，模型估計約需 2<sup>40</sup>–2<sup>47</sup> 個簽章才能利用。</p>
+      <p class="muted" style="margin-top:10px">防禦：hedged 簽章、獨立 nonce 金鑰</p>
+    </div>
+    <div class="card k1">
+      <h3>環境物理訊號</h3>
+      <p>架空線的牽引電流產生磁場，手機感測器不需要權限就能量到。</p>
+      <p class="muted" style="margin-top:10px">防禦：感測器權限、取樣率上限</p>
+    </div>
+  </div>
+  <div class="callout">三個社群（系統、密碼學、行動隱私）研究的是同一類問題，但用語與評估方式差異很大。把列車磁場論文歸為旁通道，是 wiki 的分類。<span class="tag">推論</span></div>
+  <div class="src">來源：<a href="../concepts/side-channel-attacks.md">side-channel-attacks</a> · <a href="../concepts/ecdsa-nonce-security.md">ecdsa-nonce-security</a> p.17 · <a href="../concepts/spectre.md">spectre</a></div>
+  <div class="pageno">09</div>
+</section>
+
+<!-- 10 趨勢 -->
+<section class="slide">
+  <div class="kicker">近期趨勢 <span class="tag">推論 · 樣本 5 篇</span></div>
+  <h2>從這批論文看到的五個方向</h2>
+  <div class="row cols-2" style="gap:18px 40px">
+    <div><h3>1. 統一基準取代各說各話</h3><p class="muted">重新實作舊攻擊、把失敗計入指標、控制軌跡長度等評估陷阱。</p></div>
+    <div><h3>2. 形式化方法進入工具鏈</h3><p class="muted">Rocq 證明直接套用到 LLVM；替十多年的標準補上缺少的安全假設分析。</p></div>
+    <div><h3>3. 重新檢視「無害」的資料</h3><p class="muted">刪除 GPS 的 CAN 紀錄、免權限的磁力計，都被證明能推論位置。</p></div>
+    <div><h3>4. 超越計算假設</h3><p class="muted">後量子與資訊理論方案開始比較在嵌入式裝置上的實測成本。</p></div>
+    <div><h3>5. 生成式 AI 進入研究流程</h3><p class="muted">3 篇宣告用 LLM 協助實作、證明或排版；1 篇把 LLM agent 當成評估對象。</p></div>
+  </div>
+  <div class="src">來源：<a href="../overview.md">overview.md · 近期趨勢</a> · <a href="../venues/arxiv-2026.md">arxiv-2026</a></div>
+  <div class="pageno">10</div>
+</section>
+
+<!-- 11 開放問題 -->
+<section class="slide">
+  <div class="kicker">開放問題</div>
+  <h2>還沒有答案的地方</h2>
+  <table>
+    <tr><th>問題</th><th>群</th><th>出處</th></tr>
+    <tr><td>起點未知的車輛追蹤；保護機制如何對抗適應性攻擊者</td><td style="color:var(--c1)">①</td><td>CANTraj p.12</td></tr>
+    <tr><td>行動作業系統的感測器權限與取樣率，要怎麼與計步、手勢等功能取捨</td><td style="color:var(--c1)">①</td><td>列車磁場 p.12</td></tr>
+    <tr><td>用標準模型證明或推翻 HMAC_DRBG 滿足 A*</td><td style="color:var(--c2)">②</td><td>RFC 6979 p.18</td></tr>
+    <tr><td>實際量測（而非用模型推估）256 位元曲線上一位元 nonce 外洩的攻擊成本</td><td style="color:var(--c2)">②</td><td>RFC 6979 p.18</td></tr>
+    <tr><td>資訊理論簽章在驗證者多、或事先不知道驗證者時的實用性</td><td style="color:var(--c2)">②</td><td>IT 門檻簽章 p.13</td></tr>
+    <tr><td>IR 層的 SCT 保證能否延伸到機器碼；短函數的入口屏障成本</td><td style="color:var(--c3)">③</td><td>VellSSLH p.17、p.20</td></tr>
+  </table>
+  <div class="src">來源：<a href="../overview.md">overview.md · 開放問題總表</a></div>
+  <div class="pageno">11</div>
+</section>
+
+<!-- 12 行動建議 -->
+<section class="slide">
+  <div class="kicker">給實務者</div>
+  <h2>每個角色可以做的事</h2>
+  <div class="row cols-2" style="gap:16px 22px">
+    <div class="card k1"><h3>資料發布者</h3><p>刪除 GPS 與航向都不夠；量化也擋不住。發布前要用針對劣化訊號重新調整的攻擊者實測。（CANTraj p.12）</p></div>
+    <div class="card k1"><h3>行動作業系統</h3><p>磁力計應需要權限；或依權限分級開放取樣率，免權限的上限低於 35 Hz。（列車磁場 p.12）</p></div>
+    <div class="card k2"><h3>密碼學函式庫維護者</h3><p>評估預設啟用 hedged 簽章或獨立 nonce 金鑰；補上 h ≥ n 的測試向量。（RFC 6979 p.15–19）</p></div>
+    <div class="card k3"><h3>編譯器與密碼工程</h3><p>選擇性 SLH 已經可行，但要留意入口屏障、暫存器溢出，以及 IR 以下的後端假設。（VellSSLH p.17、p.20）</p></div>
+  </div>
+  <div class="src">各項建議出自對應論文的討論章節；整理與歸類為 wiki 推論。</div>
+  <div class="pageno">12</div>
+</section>
+
+<!-- 13 來源 -->
+<section class="slide">
+  <div class="kicker">資料來源</div>
+  <h2>本簡報引用的論文</h2>
+  <table>
+    <tr><th>論文</th><th>發表</th><th>類型</th></tr>
+    <tr><td><a href="../papers/2026-wang-cantraj.md">CANTraj: Recovering Vehicle Trajectories from CAN Signals in Naturalistic Driving</a></td><td>arXiv 2611.18442</td><td>measurement</td></tr>
+    <tr><td><a href="../papers/2026-czybik-train-magnetometer-privacy.md">On the Same Track: Privacy Leaks in Electric Rail Transport via Magnetic Fields</a></td><td>CCS 2026</td><td>attack</td></tr>
+    <tr><td><a href="../papers/2026-prosianoi-rfc6979-deterministic-ecdsa.md">Deterministic ECDSA on secp256k1: the RFC 6979 assumption, a counterexample, …</a></td><td>arXiv 2611.18449</td><td>analysis</td></tr>
+    <tr><td><a href="../papers/2026-wright-it-threshold-dv-signatures.md">Information-Theoretic Threshold Designated-Verifier Digital Signatures …</a></td><td>arXiv 2611.18355</td><td>defense</td></tr>
+    <tr><td><a href="../papers/2026-priya-vellsslh.md">VellSSLH: Sound Type-Guided Selective Speculative Load Hardening for LLVM IR</a></td><td>arXiv 2611.18463</td><td>defense</td></tr>
+  </table>
+  <p class="muted" style="margin-top:22px;font-size:16px">本簡報只根據 sec-paper-wiki 已收錄的內容，樣本只有 5 篇，不代表整個資安領域。標示 <span class="tag" style="margin:0">推論</span> 的內容是跨論文綜合，不是原文主張。</p>
+  <div class="src">產生方式：依 AGENTS.md 的 Query 流程 · 2026-11-16</div>
+  <div class="pageno">13</div>
+</section>
+
+</main>
+
+<nav class="bar-ui" aria-label="投影片控制">
+  <button id="prev" aria-label="上一張">←</button>
+  <span class="counter" id="counter">1 / 1</span>
+  <button id="next" aria-label="下一張">→</button>
+  <button id="fs" aria-label="全螢幕">全螢幕</button>
+  <button id="theme" aria-label="切換深淺色">深／淺</button>
+</nav>
+<div class="progress" id="progress"></div>
+<div class="hint">← → 換頁 · F 全螢幕 · 列印可輸出 PDF</div>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let i = 0;
+
+  function fit() {
+    const s = Math.min(window.innerWidth / 1320, (window.innerHeight - 56) / 760);
+    document.documentElement.style.setProperty('--s', Math.max(s, 0.2));
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((el, k) => el.classList.toggle('active', k === i));
+    counter.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    try {
+      if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+    } catch (e) { /* 部分環境（如 data: URL）不允許改寫網址 */ }
+  }
+  const next = () => show(i + 1), prev = () => show(i - 1);
+
+  document.getElementById('next').onclick = next;
+  document.getElementById('prev').onclick = prev;
+  document.getElementById('fs').onclick = () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  };
+  document.getElementById('theme').onclick = () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme
+      ? root.dataset.theme === 'dark'
+      : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('deck-theme', root.dataset.theme); } catch (e) {}
+  };
+  try {
+    const t = localStorage.getItem('deck-theme');
+    if (t) document.documentElement.dataset.theme = t;
+  } catch (e) {}
+
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'f' || e.key === 'F') document.getElementById('fs').click();
+  });
+  let x0 = null;
+  document.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 40) (dx < 0 ? next : prev)();
+    x0 = null;
+  });
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', () => show(parseInt(location.hash.slice(1), 10) - 1 || 0));
+  fit();
+  show(parseInt(location.hash.slice(1), 10) - 1 || 0);
+})();
+</script>
+</body>
+</html>
